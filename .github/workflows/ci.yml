@@ -191,7 +191,7 @@ jobs:
 
       - name: Pull base images
         run: |
-          sudo podman pull quay.io/fedora/fedora-bootc@sha256:187d480948fe37a4cc55211b8a594adfc4f85a7d17ac1991331bf98272eb8f94 &
+          sudo podman pull quay.io/fedora/fedora-bootc@sha256:3ca807c0d2836ca425031a52dfe7fda69ca55a22c54fa78c068a22f43d6489b6 &
           sudo podman pull quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574 &
           wait
 
@@ -210,7 +210,7 @@ jobs:
         run: |
           cache_dir="${RUNNER_TEMP}/image-cache"
           mkdir -p "${cache_dir}"
-          sudo podman save -o "${cache_dir}/fedora-bootc-base.tar" quay.io/fedora/fedora-bootc@sha256:187d480948fe37a4cc55211b8a594adfc4f85a7d17ac1991331bf98272eb8f94
+          sudo podman save -o "${cache_dir}/fedora-bootc-base.tar" quay.io/fedora/fedora-bootc@sha256:3ca807c0d2836ca425031a52dfe7fda69ca55a22c54fa78c068a22f43d6489b6
           sudo chown -R "$(id -u):$(id -g)" "${cache_dir}"
 
       - name: Package raw-disk OCI layout
