@@ -32,7 +32,7 @@ bash "${repo_root}/scripts/build.sh" \
   --nimbus-version v1.2.3 \
   --source-revision abc123def456 \
   --output-dir /tmp/nimbus-machine-os-out \
-  --fedora-bootc-base-image quay.io/fedora/fedora-bootc@sha256:3ca807c0d2836ca425031a52dfe7fda69ca55a22c54fa78c068a22f43d6489b6 \
+  --fedora-bootc-base-image quay.io/fedora/fedora-bootc@sha256:e3eaca476d25a47aec32f15fc5ee939a15a40d2cf163bc722d0a598d33558484 \
   --bib-image quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574 \
   --rootfs ext4
 
@@ -40,7 +40,7 @@ grep -F -- '--nimbus-binary' "${temp_dir}/recipe.log" >/dev/null
 grep -F -- '--nimbus-version v1.2.3' "${temp_dir}/recipe.log" >/dev/null
 grep -F -- '--source-revision abc123def456' "${temp_dir}/recipe.log" >/dev/null
 grep -F -- '--output-dir /tmp/nimbus-machine-os-out' "${temp_dir}/recipe.log" >/dev/null
-grep -F -- '--fedora-bootc-base-image quay.io/fedora/fedora-bootc@sha256:3ca807c0d2836ca425031a52dfe7fda69ca55a22c54fa78c068a22f43d6489b6' "${temp_dir}/recipe.log" >/dev/null
+grep -F -- '--fedora-bootc-base-image quay.io/fedora/fedora-bootc@sha256:e3eaca476d25a47aec32f15fc5ee939a15a40d2cf163bc722d0a598d33558484' "${temp_dir}/recipe.log" >/dev/null
 grep -F -- '--bib-image quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574' "${temp_dir}/recipe.log" >/dev/null
 grep -F -- '--rootfs ext4' "${temp_dir}/recipe.log" >/dev/null
 
