@@ -17,6 +17,8 @@ grep -F 'FROM ${FEDORA_BOOTC_BASE_IMAGE}' "${recipe_dir}/Containerfile" >/dev/nu
 grep -F 'quay.io/fedora/fedora-bootc@sha256:e3eaca476d25a47aec32f15fc5ee939a15a40d2cf163bc722d0a598d33558484' "${recipe_dir}/Containerfile" >/dev/null
 ! grep -F 'ostree container commit' "${recipe_dir}/Containerfile" >/dev/null
 grep -F 'COPY nimbus /usr/local/bin/nimbus' "${recipe_dir}/Containerfile" >/dev/null
+grep -F 'ln -fs /usr/local/bin/nimbus /usr/libexec/nimbus/nimbus-container-runner' "${recipe_dir}/Containerfile" >/dev/null
+grep -F 'restorecon -v /usr/local/bin/nimbus /usr/libexec/nimbus/nimbus-container-runner' "${recipe_dir}/Containerfile" >/dev/null
 
 grep -F 'u nimbus - "Nimbus machine administrator" /var/lib/nimbus /bin/bash' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/etc/systemd/system/local-fs.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
