@@ -82,6 +82,8 @@ the facts needed for provenance and troubleshooting, including:
 - administrative user and subuid/subgid baseline
 - package inventory
 - systemd unit inventory
+- guest node-agent unit, node id, status evidence path, service-workload driver,
+  and typed runner path
 - SELinux expectation
 - raw disk, compressed disk, OCI archive, and SBOM paths plus hashes
 

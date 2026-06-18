@@ -15,11 +15,14 @@ mkdir -p \
   /etc/sysctl.d \
   /usr/lib/systemd/system \
   /usr/lib/sysusers.d \
+  /usr/libexec/nimbus \
   /usr/lib/tmpfiles.d \
   /usr/share/containers/containers.conf.d \
   /usr/share/containers/registries.conf.d \
   /usr/share/selinux/packages \
   /var/lib/nimbus/control \
+  /var/lib/nimbus/control/node-agent \
+  /var/lib/nimbus/control/service-sandboxes \
   /var/lib/nimbus/data
 
 cat >/etc/chrony.d/50-nimbus-machine-makestep.conf <<'EOF'
@@ -64,6 +67,8 @@ EOF
 cat >/usr/lib/tmpfiles.d/nimbus-machine.conf <<'EOF'
 d /var/lib/nimbus 0755 nimbus nimbus -
 d /var/lib/nimbus/control 0755 nimbus nimbus -
+d /var/lib/nimbus/control/node-agent 0755 nimbus nimbus -
+d /var/lib/nimbus/control/service-sandboxes 0755 nimbus nimbus -
 d /var/lib/nimbus/data 0755 nimbus nimbus -
 d /run/nimbus 0755 root root -
 d /run/nimbus-machine-config 0755 root root -
@@ -87,8 +92,8 @@ cat >/usr/lib/systemd/system/nimbus.service <<'EOF'
 [Unit]
 Description=Nimbus API Service
 Requires=nimbus.socket nimbus-machine-config.service
-After=nimbus.socket nimbus-machine-config.service network-online.target local-fs.target
-Wants=network-online.target
+After=nimbus.socket nimbus-machine-config.service network-online.target local-fs.target dbus.socket
+Wants=network-online.target dbus.socket
 
 [Service]
 Type=exec
@@ -96,7 +101,7 @@ KillMode=process
 WorkingDirectory=/var/lib/nimbus/data
 Environment=HOME=/var/lib/nimbus/data
 SELinuxContext=system_u:system_r:container_runtime_t:s0
-ExecStart=/usr/local/bin/nimbus machine api --socket-activation --control-data-dir /var/lib/nimbus/control
+ExecStart=/usr/local/bin/nimbus machine api --socket-activation --control-data-dir /var/lib/nimbus/control --guest-node-id machine-os-guest-node
 Restart=on-failure
 RestartSec=2
 
@@ -185,6 +190,15 @@ cat >/usr/share/selinux/packages/nimbus-machine-api.cil <<'EOF'
 )
 EOF
 
+cat >/usr/share/selinux/packages/nimbus-guest-node-agent.cil <<'EOF'
+(block nimbus_guest_node_agent
+  (allow container_runtime_t system_dbusd_var_run_t (sock_file (write getattr read open)))
+  (allow container_runtime_t system_dbusd_t (unix_stream_socket (connectto)))
+  (allow container_runtime_t init_t (dbus (send_msg)))
+  (allow init_t container_runtime_t (dbus (send_msg)))
+)
+EOF
+
 cat >/usr/share/selinux/packages/nimbus-bootupd-fedora-base.cil <<'EOF'
 (block nimbus_bootupd_fedora_base
   (allow bootupd_t mount_var_run_t (dir (search)))
@@ -198,6 +212,7 @@ cat >/usr/share/selinux/packages/nimbus-bootupd-fedora-base.cil <<'EOF'
 EOF
 
 semodule -i /usr/share/selinux/packages/nimbus-machine-api.cil
+semodule -i /usr/share/selinux/packages/nimbus-guest-node-agent.cil
 semodule -i /usr/share/selinux/packages/nimbus-bootupd-fedora-base.cil
 
 if command -v systemd-sysusers >/dev/null 2>&1; then

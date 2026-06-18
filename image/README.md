@@ -9,14 +9,17 @@ disk artifact contract that the macOS host selector consumes:
 - base image: digest-pinned `quay.io/fedora/fedora-bootc:44`
 - build flow: `podman build` -> `podman save` -> digest-pinned
   `bootc-image-builder --type raw --rootfs ext4`
-- guest workload model: standard Linux containers via `crun`, not nested
+- guest workload model: service-sandbox lifecycle enters through the machine
+  API and reconciles through the guest node-agent/systemd transient-unit path to
+  standard Linux containers via typed Nimbus runner requests, not nested
   guest-side microVMs
 - first-boot bootstrap: baked Nimbus units plus the Nimbus machine-config
   channel, not Ignition
 - host file sharing: virtiofs
 - SELinux: `nimbus.service` runs in `container_runtime_t`, the machine API
-  socket is relabeled `container_var_run_t`, the image installs a narrow
-  `nimbus-machine-api` CIL module for the host-forwarded socket path, and it
+  socket is relabeled `container_var_run_t`, the image installs narrow
+  `nimbus-machine-api` and `nimbus-guest-node-agent` CIL modules for the
+  host-forwarded socket and guest node-agent systemd D-Bus paths, and it
   installs a Fedora-base bootupd compatibility module plus a boot-state
   restorecon service for the observed bootloader-update path
 
@@ -38,6 +41,7 @@ The summary records:
 - the direct Fedora bootc base digest
 - the bootc-image-builder digest and rootfs choice
 - the bootc-native provisioning contract and administrative user
+- the guest node-agent unit/id/status path and service-workload driver/runner
 - the SELinux policy/domain expectation plus package inventory
 - the recipe file sha256 values
 - the OCI archive and raw-disk artifact sha256 values

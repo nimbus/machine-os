@@ -13,6 +13,9 @@ The image installs a narrow SELinux policy stance:
 - the socket is relabeled `container_var_run_t`
 - `nimbus-machine-api.cil` allows the host-forwarded SSH session to connect to
   the machine API socket
+- `nimbus-guest-node-agent.cil` carries the narrow system D-Bus policy anchor
+  needed for the machine API's guest node-workload facade to submit systemd
+  transient units
 - `nimbus-bootupd-fedora-base.cil` covers the observed Fedora bootupd userdb
   path in the current base image
 - `nimbus-boot-restorecon.service` relabels `/boot/bootupd-state.json` before
@@ -45,7 +48,8 @@ container runtime surfaces.
 The guest machine API owns:
 
 - readiness reporting
-- service lifecycle commands
+- service lifecycle ingress, delegated to the guest node-agent/systemd
+  transient-unit path for execution
 - bootc status/switch/upgrade/rollback commands
 - machine config application
 
@@ -82,6 +86,7 @@ Security-sensitive release evidence includes:
 - checksums
 - GitHub attestations
 - `selinux_expectation` in `build-summary.txt`
+- `guest_node_agent_*` and `service_workload_*` fields in `build-summary.txt`
 - real guest AVC capture for default promotion
 
 ## Triage Rules

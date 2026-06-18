@@ -65,8 +65,12 @@ The guest owns the Linux-side machine contract:
 - mount the host-provided machine config through virtiofs
 - apply machine config with `nimbus machine guest-config apply`
 - expose the socket-activated machine API with `nimbus machine api`
-- run standard Linux containers through Podman, crun, conmon, netavark, and
-  aardvark-dns
+- host the guest node-workload facade inside `nimbus.service`; service-sandbox
+  lifecycle requests enter through the machine API, then reconcile through the
+  guest node-agent/systemd transient-unit path with node id
+  `machine-os-guest-node`
+- run standard Linux containers through typed Nimbus runner requests backed by
+  Podman, crun, conmon, netavark, and aardvark-dns
 - support bootc status, switch, upgrade, and rollback through the machine API
 - keep mutable state under persistent `/etc` and `/var`
 
@@ -123,6 +127,8 @@ Every promoted image should be explainable from release evidence:
 - bootc-image-builder digest and rootfs choice
 - package inventory
 - systemd unit inventory
+- guest node-agent unit, node id, status evidence path, service-workload
+  driver, and typed runner path
 - SELinux policy expectation
 - SBOM, checksums, and attestations
 - published tag and digest reference

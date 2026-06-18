@@ -27,10 +27,14 @@ The guest image contains:
 - **System services** - openssh-server, socat, systemd user delegation, and
   baked `nimbus.socket`, `nimbus.service`, and
   `nimbus-machine-config.service` units.
+- **Guest node workload path** - service-sandbox lifecycle enters through the
+  machine API, then uses the guest node-agent/systemd transient-unit driver
+  with node id `machine-os-guest-node`.
 - **SELinux policy** - `nimbus.service` runs in the Fedora
   `container_runtime_t` domain, `/run/nimbus/nimbus.sock` is relabeled
-  `container_var_run_t`, and narrow CIL modules cover the machine API socket
-  plus the observed Fedora bootupd userdb path.
+  `container_var_run_t`, and narrow CIL modules cover the machine API socket,
+  guest node-agent systemd D-Bus access, and the observed Fedora bootupd userdb
+  path.
 - **Provisioning contract** - bootc-native machine config through sysusers,
   tmpfiles, baked units, virtiofs-delivered machine config, and the Nimbus
   guest config command. Ignition is not part of the normal bootc path.

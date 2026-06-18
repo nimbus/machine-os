@@ -23,20 +23,24 @@ grep -F '/etc/systemd/system/local-fs.target.wants' "${recipe_dir}/build-common.
 grep -F '/etc/systemd/system/multi-user.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/etc/systemd/system/sockets.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/bootloader-update.service.d' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '/usr/libexec/nimbus' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/nimbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/nimbus.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/share/selinux/packages' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '/var/lib/nimbus/control/node-agent' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '/var/lib/nimbus/control/service-sandboxes' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/run-nimbus\x2dmachine\x2dconfig.mount' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/nimbus-machine-config.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/nimbus-boot-restorecon.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'WantedBy=sockets.target' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'ExecStartPost=/usr/bin/chcon -t container_var_run_t /run/nimbus/nimbus.sock' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Requires=nimbus.socket nimbus-machine-config.service' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'After=nimbus.socket nimbus-machine-config.service network-online.target local-fs.target' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'After=nimbus.socket nimbus-machine-config.service network-online.target local-fs.target dbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'Wants=network-online.target dbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Before=nimbus.service sshd.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'WantedBy=multi-user.target' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'SELinuxContext=system_u:system_r:container_runtime_t:s0' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'ExecStart=/usr/local/bin/nimbus machine api --socket-activation --control-data-dir /var/lib/nimbus/control' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'ExecStart=/usr/local/bin/nimbus machine api --socket-activation --control-data-dir /var/lib/nimbus/control --guest-node-id machine-os-guest-node' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'What=nimbus-machine-config' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Where=/run/nimbus-machine-config' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Type=virtiofs' "${recipe_dir}/build-common.sh" >/dev/null
@@ -69,6 +73,11 @@ grep -F 'socat' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'cat >/usr/share/selinux/packages/nimbus-machine-api.cil' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'allow sshd_session_t container_var_run_t' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'allow sshd_session_t container_runtime_t' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'nimbus-guest-node-agent.cil' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'allow container_runtime_t system_dbusd_var_run_t' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'allow container_runtime_t system_dbusd_t' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'allow container_runtime_t init_t (dbus (send_msg))' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'allow init_t container_runtime_t (dbus (send_msg))' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'nimbus-bootupd-fedora-base.cil' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'allow bootupd_t mount_var_run_t' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'allow bootupd_t passwd_file_t' "${recipe_dir}/build-common.sh" >/dev/null
@@ -76,6 +85,7 @@ grep -F 'allow bootupd_t systemd_userdbd_runtime_t' "${recipe_dir}/build-common.
 grep -F 'allow bootupd_t systemd_userdbd_t' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'allow bootupd_t systemd_homed_t' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'semodule -i /usr/share/selinux/packages/nimbus-machine-api.cil' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'semodule -i /usr/share/selinux/packages/nimbus-guest-node-agent.cil' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'semodule -i /usr/share/selinux/packages/nimbus-bootupd-fedora-base.cil' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'dnf remove -y moby-engine containerd runc toolbox docker-cli' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574' "${recipe_dir}/build.sh" >/dev/null
@@ -85,7 +95,12 @@ grep -F 'admin_user=nimbus' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'rootless_subid=nimbus:100000:65536' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'package_inventory=aardvark-dns,buildah,conmon,containers-common,containers-common-extra,cpp,crun,fuse-overlayfs,gvisor-tap-vsock-gvforwarder,git-core,iproute,netavark,openssh-server,policycoreutils,podman,procps-ng,socat' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'systemd_units=run-nimbus\x2dmachine\x2dconfig.mount,nimbus.socket,nimbus.service,nimbus-machine-config.service,nimbus-boot-restorecon.service,sshd.service' "${recipe_dir}/build.sh" >/dev/null
-grep -F 'selinux_expectation=container-runtime-domain-container-socket-policy-plus-fedora-bootupd-compat-plus-runtime-avc-gate' "${recipe_dir}/build.sh" >/dev/null
+grep -F 'guest_node_agent_unit=nimbus.service' "${recipe_dir}/build.sh" >/dev/null
+grep -F 'guest_node_agent_id=machine-os-guest-node' "${recipe_dir}/build.sh" >/dev/null
+grep -F 'guest_node_agent_status_path=/var/lib/nimbus/control/node-agent/status.jsonl' "${recipe_dir}/build.sh" >/dev/null
+grep -F 'service_workload_driver=guest-node-agent-systemd-transient-unit' "${recipe_dir}/build.sh" >/dev/null
+grep -F 'service_workload_runner=/usr/libexec/nimbus/nimbus-container-runner' "${recipe_dir}/build.sh" >/dev/null
+grep -F 'selinux_expectation=container-runtime-domain-container-socket-policy-plus-guest-node-systemd-dbus-policy-plus-fedora-bootupd-compat-plus-runtime-avc-gate' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'nimbus-machine-os.sbom.cdx.json' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'scripts/write-sbom.sh' "${repo_root}/scripts/write-sbom.sh" >/dev/null
 
@@ -170,7 +185,12 @@ grep -F 'admin_user=nimbus' "${output_dir}/summary.txt" >/dev/null
 grep -F 'rootless_subid=nimbus:100000:65536' "${output_dir}/summary.txt" >/dev/null
 grep -F 'package_inventory=aardvark-dns,buildah,conmon,containers-common,containers-common-extra,cpp,crun,fuse-overlayfs,gvisor-tap-vsock-gvforwarder,git-core,iproute,netavark,openssh-server,policycoreutils,podman,procps-ng,socat' "${output_dir}/summary.txt" >/dev/null
 grep -F 'systemd_units=run-nimbus\x2dmachine\x2dconfig.mount,nimbus.socket,nimbus.service,nimbus-machine-config.service,nimbus-boot-restorecon.service,sshd.service' "${output_dir}/summary.txt" >/dev/null
-grep -F 'selinux_expectation=container-runtime-domain-container-socket-policy-plus-fedora-bootupd-compat-plus-runtime-avc-gate' "${output_dir}/summary.txt" >/dev/null
+grep -F 'guest_node_agent_unit=nimbus.service' "${output_dir}/summary.txt" >/dev/null
+grep -F 'guest_node_agent_id=machine-os-guest-node' "${output_dir}/summary.txt" >/dev/null
+grep -F 'guest_node_agent_status_path=/var/lib/nimbus/control/node-agent/status.jsonl' "${output_dir}/summary.txt" >/dev/null
+grep -F 'service_workload_driver=guest-node-agent-systemd-transient-unit' "${output_dir}/summary.txt" >/dev/null
+grep -F 'service_workload_runner=/usr/libexec/nimbus/nimbus-container-runner' "${output_dir}/summary.txt" >/dev/null
+grep -F 'selinux_expectation=container-runtime-domain-container-socket-policy-plus-guest-node-systemd-dbus-policy-plus-fedora-bootupd-compat-plus-runtime-avc-gate' "${output_dir}/summary.txt" >/dev/null
 grep -E '^containerfile_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/null
 grep -E '^build_common_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/null
 grep -E '^oci_archive_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/null
