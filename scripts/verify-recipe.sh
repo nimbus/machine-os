@@ -14,7 +14,7 @@ bash -n "${repo_root}/scripts/write-sbom.sh"
 
 bash "${repo_root}/scripts/check-selinux-avcs.sh" --help >/dev/null
 grep -F 'FROM ${FEDORA_BOOTC_BASE_IMAGE}' "${recipe_dir}/Containerfile" >/dev/null
-grep -F 'quay.io/fedora/fedora-bootc@sha256:e23805231218ecd1b98ee9ddf77a12661ceb44fcef74b4492fdb2e48d9d4d083' "${recipe_dir}/Containerfile" >/dev/null
+grep -F 'quay.io/fedora/fedora-bootc@sha256:5cb3f1ce33bb0663effecf6b278dae5c91a97f4ab0b5dddd8a883ba9a9f6b354' "${recipe_dir}/Containerfile" >/dev/null
 ! grep -F 'ostree container commit' "${recipe_dir}/Containerfile" >/dev/null
 grep -F 'COPY nimbus /usr/local/bin/nimbus' "${recipe_dir}/Containerfile" >/dev/null
 grep -F 'ln -fs /usr/local/bin/nimbus /usr/libexec/nimbus/nimbus-container-runner' "${recipe_dir}/Containerfile" >/dev/null
@@ -170,7 +170,7 @@ test -f "${output_dir}/nimbus-machine-os.sbom.cdx.json"
 test -f "${output_dir}/summary.txt"
 grep -F -- '--build-arg FEDORA_BOOTC_BASE_IMAGE=' "${temp_dir}/podman.log" >/dev/null
 grep -F -- '--no-cache' "${temp_dir}/podman.log" >/dev/null
-grep -F -- 'quay.io/fedora/fedora-bootc@sha256:e23805231218ecd1b98ee9ddf77a12661ceb44fcef74b4492fdb2e48d9d4d083' "${temp_dir}/podman.log" >/dev/null
+grep -F -- 'quay.io/fedora/fedora-bootc@sha256:5cb3f1ce33bb0663effecf6b278dae5c91a97f4ab0b5dddd8a883ba9a9f6b354' "${temp_dir}/podman.log" >/dev/null
 grep -F -- 'quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574' "${temp_dir}/podman.log" >/dev/null
 grep -F -- 'save --format oci-archive' "${temp_dir}/podman.log" >/dev/null
 grep -F -- 'bootc-image-builder' "${temp_dir}/podman.log" >/dev/null
@@ -184,7 +184,7 @@ grep -E '^nimbus_binary_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/
 grep -F 'nimbus_version=v1.2.3' "${output_dir}/summary.txt" >/dev/null
 grep -F 'source_revision=abc123def456' "${output_dir}/summary.txt" >/dev/null
 grep -F 'no_cache=1' "${output_dir}/summary.txt" >/dev/null
-grep -F 'fedora_bootc_base_image=quay.io/fedora/fedora-bootc@sha256:e23805231218ecd1b98ee9ddf77a12661ceb44fcef74b4492fdb2e48d9d4d083' "${output_dir}/summary.txt" >/dev/null
+grep -F 'fedora_bootc_base_image=quay.io/fedora/fedora-bootc@sha256:5cb3f1ce33bb0663effecf6b278dae5c91a97f4ab0b5dddd8a883ba9a9f6b354' "${output_dir}/summary.txt" >/dev/null
 grep -F 'bib_image=quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574' "${output_dir}/summary.txt" >/dev/null
 grep -F 'bootc_image_builder_rootfs=ext4' "${output_dir}/summary.txt" >/dev/null
 grep -F 'provisioning_contract=bootc-native-no-ignition-primary' "${output_dir}/summary.txt" >/dev/null
@@ -213,6 +213,6 @@ grep -F '"bomFormat": "CycloneDX"' "${output_dir}/nimbus-machine-os.sbom.cdx.jso
 grep -F '"name": "nimbus-machine-os"' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
 grep -F '"name": "nimbus"' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
 grep -F '"name": "podman"' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
-grep -F 'sha256:e23805231218ecd1b98ee9ddf77a12661ceb44fcef74b4492fdb2e48d9d4d083' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
+grep -F 'sha256:5cb3f1ce33bb0663effecf6b278dae5c91a97f4ab0b5dddd8a883ba9a9f6b354' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
 
 printf 'verified nimbus machine-os recipe\n'
