@@ -46,10 +46,15 @@ grep -F 'ExecStart=/usr/local/bin/nimbus machine api --socket-activation --contr
 grep -F 'What=nimbus-machine-config' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Where=/run/nimbus-machine-config' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Type=virtiofs' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'Options=ro,context="system_u:object_r:container_var_run_t:s0"' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'Options=ro' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'cat >/usr/libexec/nimbus/apply-machine-config.sh' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'mount -t virtiofs -o "${mount_options}" "${mount_tag}" "${mount_point}"' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'Wants=run-nimbus\x2dmachine\x2dconfig.mount' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F "mount_options_primary='ro,context=\"system_u:object_r:container_var_run_t:s0\"'" "${recipe_dir}/build-common.sh" >/dev/null
+grep -F "mount_options_fallback='ro'" "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'mount -t virtiofs -o "${mount_options_primary}" "${mount_tag}" "${mount_point}"' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'mount -t virtiofs -o "${mount_options_fallback}" "${mount_tag}" "${mount_point}"' "${recipe_dir}/build-common.sh" >/dev/null
+! grep -F 'Wants=run-nimbus\x2dmachine\x2dconfig.mount' "${recipe_dir}/build-common.sh" >/dev/null
+! grep -F 'After=run-nimbus\x2dmachine\x2dconfig.mount' "${recipe_dir}/build-common.sh" >/dev/null
+! grep -F '/etc/systemd/system/local-fs.target.wants/run-nimbus\x2dmachine\x2dconfig.mount' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'StandardOutput=journal+console' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'StandardError=journal+console' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'ExecStart=/usr/libexec/nimbus/apply-machine-config.sh' "${recipe_dir}/build-common.sh" >/dev/null

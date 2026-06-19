@@ -119,7 +119,7 @@ Before=local-fs.target nimbus-machine-config.service
 What=nimbus-machine-config
 Where=/run/nimbus-machine-config
 Type=virtiofs
-Options=ro,context="system_u:object_r:container_var_run_t:s0"
+Options=ro
 
 [Install]
 WantedBy=local-fs.target
@@ -131,13 +131,20 @@ set -euo pipefail
 
 mount_tag="nimbus-machine-config"
 mount_point="/run/nimbus-machine-config"
-mount_options='ro,context="system_u:object_r:container_var_run_t:s0"'
+mount_options_primary='ro,context="system_u:object_r:container_var_run_t:s0"'
+mount_options_fallback='ro'
+
+mount_machine_config() {
+  mount -t virtiofs -o "${mount_options_primary}" "${mount_tag}" "${mount_point}" >/dev/null 2>&1 && return 0
+  mount -t virtiofs -o "${mount_options_fallback}" "${mount_tag}" "${mount_point}" >/dev/null 2>&1 && return 0
+  return 1
+}
 
 for _attempt in $(seq 1 180); do
   if mountpoint -q "${mount_point}" && [[ -f "${mount_point}/machine.json" ]]; then
     exec /usr/local/bin/nimbus machine guest-config apply --config-dir "${mount_point}"
   fi
-  mount -t virtiofs -o "${mount_options}" "${mount_tag}" "${mount_point}" >/dev/null 2>&1 || true
+  mount_machine_config || true
   if mountpoint -q "${mount_point}" && [[ -f "${mount_point}/machine.json" ]]; then
     exec /usr/local/bin/nimbus machine guest-config apply --config-dir "${mount_point}"
   fi
@@ -154,8 +161,6 @@ chmod 0755 /usr/libexec/nimbus/apply-machine-config.sh
 cat >/usr/lib/systemd/system/nimbus-machine-config.service <<'EOF'
 [Unit]
 Description=Nimbus Machine Config Apply
-Wants=run-nimbus\x2dmachine\x2dconfig.mount
-After=run-nimbus\x2dmachine\x2dconfig.mount
 Before=nimbus.service sshd.service
 
 [Service]
@@ -259,8 +264,6 @@ fi
 
 ln -fs /usr/lib/systemd/system/sshd.service \
   /etc/systemd/system/multi-user.target.wants/sshd.service
-ln -fs '/usr/lib/systemd/system/run-nimbus\x2dmachine\x2dconfig.mount' \
-  '/etc/systemd/system/local-fs.target.wants/run-nimbus\x2dmachine\x2dconfig.mount'
 ln -fs /usr/lib/systemd/system/nimbus.socket \
   /etc/systemd/system/sockets.target.wants/nimbus.socket
 ln -fs /usr/lib/systemd/system/nimbus-machine-config.service \
