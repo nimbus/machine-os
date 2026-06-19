@@ -11,6 +11,8 @@ mkdir -p \
   /etc/systemd/system/multi-user.target.wants \
   /etc/systemd/system/sockets.target.wants \
   /usr/lib/systemd/system/bootloader-update.service.d \
+  /usr/lib/systemd/system/multi-user.target.wants \
+  /usr/lib/systemd/system/sockets.target.wants \
   /etc/systemd/system/user@.service.d \
   /etc/sysctl.d \
   /usr/lib/systemd/system \
@@ -266,10 +268,16 @@ ln -fs /usr/lib/systemd/system/sshd.service \
   /etc/systemd/system/multi-user.target.wants/sshd.service
 ln -fs /usr/lib/systemd/system/nimbus.socket \
   /etc/systemd/system/sockets.target.wants/nimbus.socket
+ln -fs /usr/lib/systemd/system/nimbus.socket \
+  /usr/lib/systemd/system/sockets.target.wants/nimbus.socket
 ln -fs /usr/lib/systemd/system/nimbus-machine-config.service \
   /etc/systemd/system/multi-user.target.wants/nimbus-machine-config.service
+ln -fs /usr/lib/systemd/system/nimbus-machine-config.service \
+  /usr/lib/systemd/system/multi-user.target.wants/nimbus-machine-config.service
 ln -fs /usr/lib/systemd/system/nimbus-boot-restorecon.service \
   /etc/systemd/system/multi-user.target.wants/nimbus-boot-restorecon.service
+ln -fs /usr/lib/systemd/system/nimbus-boot-restorecon.service \
+  /usr/lib/systemd/system/multi-user.target.wants/nimbus-boot-restorecon.service
 
 if [[ -L /usr/local && "$(readlink /usr/local)" =~ ^(\.\./)?var/usrlocal$ ]]; then
   mkdir -p /var/usrlocal/bin

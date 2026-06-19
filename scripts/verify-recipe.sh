@@ -25,6 +25,8 @@ grep -F '/etc/systemd/system/local-fs.target.wants' "${recipe_dir}/build-common.
 grep -F '/etc/systemd/system/multi-user.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/etc/systemd/system/sockets.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/bootloader-update.service.d' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '/usr/lib/systemd/system/multi-user.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '/usr/lib/systemd/system/sockets.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/libexec/nimbus' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/nimbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/nimbus.service' "${recipe_dir}/build-common.sh" >/dev/null
@@ -35,6 +37,9 @@ grep -F '/usr/lib/systemd/system/run-nimbus\x2dmachine\x2dconfig.mount' "${recip
 grep -F '/usr/lib/systemd/system/nimbus-machine-config.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/nimbus-boot-restorecon.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'WantedBy=sockets.target' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '/usr/lib/systemd/system/sockets.target.wants/nimbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '/usr/lib/systemd/system/multi-user.target.wants/nimbus-machine-config.service' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '/usr/lib/systemd/system/multi-user.target.wants/nimbus-boot-restorecon.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'ExecStartPost=/usr/bin/chcon -t container_var_run_t /run/nimbus/nimbus.sock' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Requires=nimbus.socket nimbus-machine-config.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'After=nimbus.socket nimbus-machine-config.service network-online.target local-fs.target dbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
