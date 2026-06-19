@@ -119,22 +119,50 @@ Before=local-fs.target nimbus-machine-config.service
 What=nimbus-machine-config
 Where=/run/nimbus-machine-config
 Type=virtiofs
-Options=ro
+Options=ro,context="system_u:object_r:container_var_run_t:s0"
 
 [Install]
 WantedBy=local-fs.target
 EOF
 
+cat >/usr/libexec/nimbus/apply-machine-config.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+mount_tag="nimbus-machine-config"
+mount_point="/run/nimbus-machine-config"
+mount_options='ro,context="system_u:object_r:container_var_run_t:s0"'
+
+for _attempt in $(seq 1 180); do
+  if mountpoint -q "${mount_point}" && [[ -f "${mount_point}/machine.json" ]]; then
+    exec /usr/local/bin/nimbus machine guest-config apply --config-dir "${mount_point}"
+  fi
+  mount -t virtiofs -o "${mount_options}" "${mount_tag}" "${mount_point}" >/dev/null 2>&1 || true
+  if mountpoint -q "${mount_point}" && [[ -f "${mount_point}/machine.json" ]]; then
+    exec /usr/local/bin/nimbus machine guest-config apply --config-dir "${mount_point}"
+  fi
+  sleep 1
+done
+
+echo "Nimbus machine-config virtiofs mount did not become ready at ${mount_point}" >&2
+findmnt "${mount_point}" >&2 || true
+ls -la "${mount_point}" >&2 || true
+exit 1
+EOF
+chmod 0755 /usr/libexec/nimbus/apply-machine-config.sh
+
 cat >/usr/lib/systemd/system/nimbus-machine-config.service <<'EOF'
 [Unit]
 Description=Nimbus Machine Config Apply
-Requires=run-nimbus\x2dmachine\x2dconfig.mount
+Wants=run-nimbus\x2dmachine\x2dconfig.mount
 After=run-nimbus\x2dmachine\x2dconfig.mount
 Before=nimbus.service sshd.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/nimbus machine guest-config apply --config-dir /run/nimbus-machine-config
+StandardOutput=journal+console
+StandardError=journal+console
+ExecStart=/usr/libexec/nimbus/apply-machine-config.sh
 RemainAfterExit=yes
 
 [Install]

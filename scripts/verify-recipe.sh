@@ -14,7 +14,7 @@ bash -n "${repo_root}/scripts/write-sbom.sh"
 
 bash "${repo_root}/scripts/check-selinux-avcs.sh" --help >/dev/null
 grep -F 'FROM ${FEDORA_BOOTC_BASE_IMAGE}' "${recipe_dir}/Containerfile" >/dev/null
-grep -F 'quay.io/fedora/fedora-bootc@sha256:e3eaca476d25a47aec32f15fc5ee939a15a40d2cf163bc722d0a598d33558484' "${recipe_dir}/Containerfile" >/dev/null
+grep -F 'quay.io/fedora/fedora-bootc@sha256:e23805231218ecd1b98ee9ddf77a12661ceb44fcef74b4492fdb2e48d9d4d083' "${recipe_dir}/Containerfile" >/dev/null
 ! grep -F 'ostree container commit' "${recipe_dir}/Containerfile" >/dev/null
 grep -F 'COPY nimbus /usr/local/bin/nimbus' "${recipe_dir}/Containerfile" >/dev/null
 grep -F 'ln -fs /usr/local/bin/nimbus /usr/libexec/nimbus/nimbus-container-runner' "${recipe_dir}/Containerfile" >/dev/null
@@ -46,8 +46,13 @@ grep -F 'ExecStart=/usr/local/bin/nimbus machine api --socket-activation --contr
 grep -F 'What=nimbus-machine-config' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Where=/run/nimbus-machine-config' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Type=virtiofs' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'Requires=run-nimbus\x2dmachine\x2dconfig.mount' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'ExecStart=/usr/local/bin/nimbus machine guest-config apply --config-dir /run/nimbus-machine-config' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'Options=ro,context="system_u:object_r:container_var_run_t:s0"' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'cat >/usr/libexec/nimbus/apply-machine-config.sh' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'mount -t virtiofs -o "${mount_options}" "${mount_tag}" "${mount_point}"' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'Wants=run-nimbus\x2dmachine\x2dconfig.mount' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'StandardOutput=journal+console' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'StandardError=journal+console' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'ExecStart=/usr/libexec/nimbus/apply-machine-config.sh' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'bootloader-update.service.d/10-nimbus-restorecon.conf' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Wants=nimbus-boot-restorecon.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'After=nimbus-boot-restorecon.service' "${recipe_dir}/build-common.sh" >/dev/null
@@ -165,7 +170,7 @@ test -f "${output_dir}/nimbus-machine-os.sbom.cdx.json"
 test -f "${output_dir}/summary.txt"
 grep -F -- '--build-arg FEDORA_BOOTC_BASE_IMAGE=' "${temp_dir}/podman.log" >/dev/null
 grep -F -- '--no-cache' "${temp_dir}/podman.log" >/dev/null
-grep -F -- 'quay.io/fedora/fedora-bootc@sha256:e3eaca476d25a47aec32f15fc5ee939a15a40d2cf163bc722d0a598d33558484' "${temp_dir}/podman.log" >/dev/null
+grep -F -- 'quay.io/fedora/fedora-bootc@sha256:e23805231218ecd1b98ee9ddf77a12661ceb44fcef74b4492fdb2e48d9d4d083' "${temp_dir}/podman.log" >/dev/null
 grep -F -- 'quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574' "${temp_dir}/podman.log" >/dev/null
 grep -F -- 'save --format oci-archive' "${temp_dir}/podman.log" >/dev/null
 grep -F -- 'bootc-image-builder' "${temp_dir}/podman.log" >/dev/null
@@ -179,7 +184,7 @@ grep -E '^nimbus_binary_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/
 grep -F 'nimbus_version=v1.2.3' "${output_dir}/summary.txt" >/dev/null
 grep -F 'source_revision=abc123def456' "${output_dir}/summary.txt" >/dev/null
 grep -F 'no_cache=1' "${output_dir}/summary.txt" >/dev/null
-grep -F 'fedora_bootc_base_image=quay.io/fedora/fedora-bootc@sha256:e3eaca476d25a47aec32f15fc5ee939a15a40d2cf163bc722d0a598d33558484' "${output_dir}/summary.txt" >/dev/null
+grep -F 'fedora_bootc_base_image=quay.io/fedora/fedora-bootc@sha256:e23805231218ecd1b98ee9ddf77a12661ceb44fcef74b4492fdb2e48d9d4d083' "${output_dir}/summary.txt" >/dev/null
 grep -F 'bib_image=quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574' "${output_dir}/summary.txt" >/dev/null
 grep -F 'bootc_image_builder_rootfs=ext4' "${output_dir}/summary.txt" >/dev/null
 grep -F 'provisioning_contract=bootc-native-no-ignition-primary' "${output_dir}/summary.txt" >/dev/null
@@ -208,6 +213,6 @@ grep -F '"bomFormat": "CycloneDX"' "${output_dir}/nimbus-machine-os.sbom.cdx.jso
 grep -F '"name": "nimbus-machine-os"' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
 grep -F '"name": "nimbus"' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
 grep -F '"name": "podman"' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
-grep -F 'sha256:e3eaca476d25a47aec32f15fc5ee939a15a40d2cf163bc722d0a598d33558484' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
+grep -F 'sha256:e23805231218ecd1b98ee9ddf77a12661ceb44fcef74b4492fdb2e48d9d4d083' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
 
 printf 'verified nimbus machine-os recipe\n'
