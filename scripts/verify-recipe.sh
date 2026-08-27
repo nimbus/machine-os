@@ -21,6 +21,9 @@ grep -F 'ln -fs /usr/local/bin/nimbus /usr/libexec/nimbus/nimbus-container-runne
 grep -F 'restorecon -v /usr/local/bin/nimbus /usr/libexec/nimbus/nimbus-container-runner' "${recipe_dir}/Containerfile" >/dev/null
 
 grep -F 'u nimbus - "Nimbus machine administrator" /var/lib/nimbus /bin/bash' "${recipe_dir}/build-common.sh" >/dev/null
+grep -Fx '  sudo' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'nimbus ALL=(ALL) NOPASSWD: ALL' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'chmod 0440 /etc/sudoers.d/nimbus' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/etc/systemd/system/local-fs.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/etc/systemd/system/multi-user.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/etc/systemd/system/sockets.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
@@ -110,7 +113,7 @@ grep -F 'bootc_image_builder_rootfs=${rootfs}' "${recipe_dir}/build.sh" >/dev/nu
 grep -F 'provisioning_contract=bootc-native-no-ignition-primary' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'admin_user=nimbus' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'rootless_subid=nimbus:100000:65536' "${recipe_dir}/build.sh" >/dev/null
-grep -F 'package_inventory=aardvark-dns,buildah,conmon,containers-common,containers-common-extra,cpp,crun,fuse-overlayfs,gvisor-tap-vsock-gvforwarder,git-core,iproute,netavark,openssh-server,policycoreutils,podman,procps-ng,socat' "${recipe_dir}/build.sh" >/dev/null
+grep -F 'package_inventory=aardvark-dns,buildah,conmon,containers-common,containers-common-extra,cpp,crun,fuse-overlayfs,gvisor-tap-vsock-gvforwarder,git-core,iproute,netavark,openssh-server,policycoreutils,podman,procps-ng,socat,sudo' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'systemd_units=run-nimbus\x2dmachine\x2dconfig.mount,nimbus.socket,nimbus.service,nimbus-machine-config.service,nimbus-boot-restorecon.service,sshd.service' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'guest_node_agent_unit=nimbus.service' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'guest_node_agent_id=machine-os-guest-node' "${recipe_dir}/build.sh" >/dev/null
@@ -200,7 +203,7 @@ grep -F 'bootc_image_builder_rootfs=ext4' "${output_dir}/summary.txt" >/dev/null
 grep -F 'provisioning_contract=bootc-native-no-ignition-primary' "${output_dir}/summary.txt" >/dev/null
 grep -F 'admin_user=nimbus' "${output_dir}/summary.txt" >/dev/null
 grep -F 'rootless_subid=nimbus:100000:65536' "${output_dir}/summary.txt" >/dev/null
-grep -F 'package_inventory=aardvark-dns,buildah,conmon,containers-common,containers-common-extra,cpp,crun,fuse-overlayfs,gvisor-tap-vsock-gvforwarder,git-core,iproute,netavark,openssh-server,policycoreutils,podman,procps-ng,socat' "${output_dir}/summary.txt" >/dev/null
+grep -F 'package_inventory=aardvark-dns,buildah,conmon,containers-common,containers-common-extra,cpp,crun,fuse-overlayfs,gvisor-tap-vsock-gvforwarder,git-core,iproute,netavark,openssh-server,policycoreutils,podman,procps-ng,socat,sudo' "${output_dir}/summary.txt" >/dev/null
 grep -F 'systemd_units=run-nimbus\x2dmachine\x2dconfig.mount,nimbus.socket,nimbus.service,nimbus-machine-config.service,nimbus-boot-restorecon.service,sshd.service' "${output_dir}/summary.txt" >/dev/null
 grep -F 'guest_node_agent_unit=nimbus.service' "${output_dir}/summary.txt" >/dev/null
 grep -F 'guest_node_agent_id=machine-os-guest-node' "${output_dir}/summary.txt" >/dev/null

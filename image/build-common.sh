@@ -214,7 +214,8 @@ dnf install --best -y \
   policycoreutils \
   podman \
   procps-ng \
-  socat
+  socat \
+  sudo
 
 dnf remove -y moby-engine containerd runc toolbox docker-cli || true
 
@@ -249,6 +250,12 @@ EOF
 semodule -i /usr/share/selinux/packages/nimbus-machine-api.cil
 semodule -i /usr/share/selinux/packages/nimbus-guest-node-agent.cil
 semodule -i /usr/share/selinux/packages/nimbus-bootupd-fedora-base.cil
+
+install -d -m 0750 /etc/sudoers.d
+cat >/etc/sudoers.d/nimbus <<'EOF'
+nimbus ALL=(ALL) NOPASSWD: ALL
+EOF
+chmod 0440 /etc/sudoers.d/nimbus
 
 if command -v systemd-sysusers >/dev/null 2>&1; then
   systemd-sysusers /usr/lib/sysusers.d/nimbus-machine.conf
