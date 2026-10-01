@@ -14,7 +14,7 @@ bash -n "${repo_root}/scripts/write-sbom.sh"
 
 bash "${repo_root}/scripts/check-selinux-avcs.sh" --help >/dev/null
 grep -F 'FROM ${FEDORA_BOOTC_BASE_IMAGE}' "${recipe_dir}/Containerfile" >/dev/null
-grep -F 'quay.io/fedora/fedora-bootc@sha256:5cb3f1ce33bb0663effecf6b278dae5c91a97f4ab0b5dddd8a883ba9a9f6b354' "${recipe_dir}/Containerfile" >/dev/null
+grep -F 'quay.io/fedora/fedora-bootc@sha256:9b270569fa5d66ed0b0fb6692b2a7431fb17c774df8fa7819722420194a6f8eb' "${recipe_dir}/Containerfile" >/dev/null
 ! grep -F 'ostree container commit' "${recipe_dir}/Containerfile" >/dev/null
 grep -F 'COPY nimbus /usr/local/bin/nimbus' "${recipe_dir}/Containerfile" >/dev/null
 grep -F 'ln -fs /usr/local/bin/nimbus /usr/libexec/nimbus/nimbus-container-runner' "${recipe_dir}/Containerfile" >/dev/null
@@ -108,7 +108,7 @@ grep -F 'semodule -i /usr/share/selinux/packages/nimbus-machine-api.cil' "${reci
 grep -F 'semodule -i /usr/share/selinux/packages/nimbus-guest-node-agent.cil' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'semodule -i /usr/share/selinux/packages/nimbus-bootupd-fedora-base.cil' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'dnf remove -y moby-engine containerd runc toolbox docker-cli' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574' "${recipe_dir}/build.sh" >/dev/null
+grep -F 'ghcr.io/osbuild/bootc-image-builder@sha256:26c9ebd8ba43596ffa266749d9745dcf97d60df1a3c7c577a97ebf95f35278da' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'bootc_image_builder_rootfs=${rootfs}' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'provisioning_contract=bootc-native-no-ignition-primary' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'admin_user=nimbus' "${recipe_dir}/build.sh" >/dev/null
@@ -147,6 +147,13 @@ if [[ "${1:-}" == "save" ]]; then
     prev="$i"
   done
 fi
+# Handle `podman run --rm --entrypoint /usr/bin/rpm <image> -qa`
+if [[ "${1:-}" == "run" && " $* " == *" --entrypoint /usr/bin/rpm "* ]]; then
+  if [[ "${FAKE_RPM_QA_EMPTY:-0}" != "1" ]]; then
+    printf '%s\n' podman-5.8.7-1.fc44.aarch64 buildah-1.43.4-1.fc44.aarch64 aardvark-dns-1.17.1-1.fc44.aarch64
+  fi
+  exit 0
+fi
 # Handle `podman run ... bootc-image-builder ... --type raw`
 if [[ "${1:-}" == "run" ]]; then
   for i in "$@"; do
@@ -181,10 +188,14 @@ test -f "${output_dir}/nimbus-machine-os.raw"
 test -f "${output_dir}/nimbus-machine-os.raw.gz"
 test -f "${output_dir}/nimbus-machine-os.sbom.cdx.json"
 test -f "${output_dir}/summary.txt"
+test -f "${output_dir}/nimbus-machine-os.packages.txt"
+printf '%s\n' aardvark-dns-1.17.1-1.fc44.aarch64 buildah-1.43.4-1.fc44.aarch64 podman-5.8.7-1.fc44.aarch64 |
+  cmp -s - "${output_dir}/nimbus-machine-os.packages.txt"
+grep -F -- 'run --rm --entrypoint /usr/bin/rpm localhost/nimbus-machine-os:dev -qa' "${temp_dir}/podman.log" >/dev/null
 grep -F -- '--build-arg FEDORA_BOOTC_BASE_IMAGE=' "${temp_dir}/podman.log" >/dev/null
 grep -F -- '--no-cache' "${temp_dir}/podman.log" >/dev/null
-grep -F -- 'quay.io/fedora/fedora-bootc@sha256:5cb3f1ce33bb0663effecf6b278dae5c91a97f4ab0b5dddd8a883ba9a9f6b354' "${temp_dir}/podman.log" >/dev/null
-grep -F -- 'quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574' "${temp_dir}/podman.log" >/dev/null
+grep -F -- 'quay.io/fedora/fedora-bootc@sha256:9b270569fa5d66ed0b0fb6692b2a7431fb17c774df8fa7819722420194a6f8eb' "${temp_dir}/podman.log" >/dev/null
+grep -F -- 'ghcr.io/osbuild/bootc-image-builder@sha256:26c9ebd8ba43596ffa266749d9745dcf97d60df1a3c7c577a97ebf95f35278da' "${temp_dir}/podman.log" >/dev/null
 grep -F -- 'save --format oci-archive' "${temp_dir}/podman.log" >/dev/null
 grep -F -- 'bootc-image-builder' "${temp_dir}/podman.log" >/dev/null
 grep -F -- '--type raw' "${temp_dir}/podman.log" >/dev/null
@@ -197,8 +208,8 @@ grep -E '^nimbus_binary_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/
 grep -F 'nimbus_version=v1.2.3' "${output_dir}/summary.txt" >/dev/null
 grep -F 'source_revision=abc123def456' "${output_dir}/summary.txt" >/dev/null
 grep -F 'no_cache=1' "${output_dir}/summary.txt" >/dev/null
-grep -F 'fedora_bootc_base_image=quay.io/fedora/fedora-bootc@sha256:5cb3f1ce33bb0663effecf6b278dae5c91a97f4ab0b5dddd8a883ba9a9f6b354' "${output_dir}/summary.txt" >/dev/null
-grep -F 'bib_image=quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574' "${output_dir}/summary.txt" >/dev/null
+grep -F 'fedora_bootc_base_image=quay.io/fedora/fedora-bootc@sha256:9b270569fa5d66ed0b0fb6692b2a7431fb17c774df8fa7819722420194a6f8eb' "${output_dir}/summary.txt" >/dev/null
+grep -F 'bib_image=ghcr.io/osbuild/bootc-image-builder@sha256:26c9ebd8ba43596ffa266749d9745dcf97d60df1a3c7c577a97ebf95f35278da' "${output_dir}/summary.txt" >/dev/null
 grep -F 'bootc_image_builder_rootfs=ext4' "${output_dir}/summary.txt" >/dev/null
 grep -F 'provisioning_contract=bootc-native-no-ignition-primary' "${output_dir}/summary.txt" >/dev/null
 grep -F 'admin_user=nimbus' "${output_dir}/summary.txt" >/dev/null
@@ -214,6 +225,8 @@ grep -F 'selinux_expectation=container-runtime-domain-container-socket-policy-pl
 grep -E '^containerfile_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/null
 grep -E '^build_common_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/null
 grep -E '^oci_archive_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/null
+grep -F "package_list_path=${output_dir}/nimbus-machine-os.packages.txt" "${output_dir}/summary.txt" >/dev/null
+grep -E '^package_list_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/null
 grep -E '^raw_disk_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/null
 grep -E '^compressed_raw_disk_sha256=[0-9a-f]{64}$' "${output_dir}/summary.txt" >/dev/null
 grep -F "sbom_path=${output_dir}/nimbus-machine-os.sbom.cdx.json" "${output_dir}/summary.txt" >/dev/null
@@ -226,6 +239,22 @@ grep -F '"bomFormat": "CycloneDX"' "${output_dir}/nimbus-machine-os.sbom.cdx.jso
 grep -F '"name": "nimbus-machine-os"' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
 grep -F '"name": "nimbus"' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
 grep -F '"name": "podman"' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
-grep -F 'sha256:5cb3f1ce33bb0663effecf6b278dae5c91a97f4ab0b5dddd8a883ba9a9f6b354' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
+grep -F 'sha256:9b270569fa5d66ed0b0fb6692b2a7431fb17c774df8fa7819722420194a6f8eb' "${output_dir}/nimbus-machine-os.sbom.cdx.json" >/dev/null
+
+empty_output_dir="${temp_dir}/out-empty-rpm"
+if FAKE_RPM_QA_EMPTY=1 \
+  TMPDIR="${temp_dir}" \
+  PATH="${fake_bin}:${PATH}" \
+  NIMBUS_MACHINE_OS_BUILD_TEST_UNAME=Linux \
+  NIMBUS_MACHINE_OS_BUILD_TEST_UID=0 \
+  bash "${recipe_dir}/build.sh" \
+    --nimbus-binary "${nimbus_binary}" \
+    --output-dir "${empty_output_dir}" \
+    --context-dir "${context_dir}" 2>"${temp_dir}/empty-rpm.err"; then
+  echo "build.sh must fail when rpm -qa does not list podman" >&2
+  exit 1
+fi
+grep -F 'rpm -qa package list does not include podman' "${temp_dir}/empty-rpm.err" >/dev/null
+test ! -e "${empty_output_dir}/summary.txt"
 
 printf 'verified nimbus machine-os recipe\n'

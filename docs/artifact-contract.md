@@ -86,6 +86,7 @@ the facts needed for provenance and troubleshooting, including:
   and typed runner path
 - SELinux expectation
 - raw disk, compressed disk, OCI archive, and SBOM paths plus hashes
+- installed package list (`rpm -qa`) path and hash
 
 ## Compatibility Boundary
 

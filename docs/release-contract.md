@@ -92,6 +92,7 @@ Each release should make these facts easy to verify:
 - compressed raw disk hash
 - OCI manifest digest
 - SBOM hash
+- installed package list (`nimbus-machine-os.packages.txt`, from `rpm -qa`)
 - checksum file
 - GitHub attestation record
 

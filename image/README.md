@@ -32,6 +32,8 @@ it does not build the guest image locally during normal development.
 
 - `nimbus-machine-os.ociarchive`
 - `nimbus-machine-os.raw.gz`
+- `nimbus-machine-os.packages.txt`, the sorted `rpm -qa` list of the built
+  image
 - `summary.txt`
 
 The summary records:
@@ -45,6 +47,7 @@ The summary records:
 - the SELinux policy/domain expectation plus package inventory
 - the recipe file sha256 values
 - the OCI archive and raw-disk artifact sha256 values
+- the installed package list path and sha256
 
 That summary is the canonical handoff into `scripts/package-oci.sh`, which
 wraps the raw disk in the OCI layout consumed by the host machine manager.

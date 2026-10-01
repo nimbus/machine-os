@@ -44,6 +44,7 @@ The wrapper calls the checked-in image recipe and writes:
 - `nimbus-machine-os.raw`
 - `nimbus-machine-os.raw.gz`
 - `nimbus-machine-os.sbom.cdx.json`
+- `nimbus-machine-os.packages.txt`
 - `summary.txt`
 
 ## Package

@@ -62,8 +62,8 @@ nimbus_version=""
 source_revision="${NIMBUS_MACHINE_OS_SOURCE_REVISION:-}"
 output_dir=""
 image_name="localhost/nimbus-machine-os:dev"
-fedora_bootc_base_image="quay.io/fedora/fedora-bootc@sha256:5cb3f1ce33bb0663effecf6b278dae5c91a97f4ab0b5dddd8a883ba9a9f6b354"
-bib_image="${NIMBUS_BIB_IMAGE:-quay.io/centos-bootc/bootc-image-builder@sha256:754fc17718f977313885379e2c779066aba7d15af88fe04b486baec74759f574}"
+fedora_bootc_base_image="quay.io/fedora/fedora-bootc@sha256:9b270569fa5d66ed0b0fb6692b2a7431fb17c774df8fa7819722420194a6f8eb"
+bib_image="${NIMBUS_BIB_IMAGE:-ghcr.io/osbuild/bootc-image-builder@sha256:26c9ebd8ba43596ffa266749d9745dcf97d60df1a3c7c577a97ebf95f35278da}"
 rootfs="ext4"
 context_dir=""
 no_cache="${NIMBUS_MACHINE_OS_BUILD_NO_CACHE:-0}"
@@ -171,6 +171,13 @@ podman_build_args+=("${context_dir}")
 
 podman "${podman_build_args[@]}"
 
+package_list_path="${output_dir}/nimbus-machine-os.packages.txt"
+podman run --rm --entrypoint /usr/bin/rpm "${image_name}" -qa | LC_ALL=C sort >"${package_list_path}"
+if ! grep -Eq '^podman-[0-9]' "${package_list_path}"; then
+  echo "rpm -qa package list does not include podman: ${package_list_path}" >&2
+  exit 1
+fi
+
 oci_archive_path="${output_dir}/nimbus-machine-os.ociarchive"
 
 podman save --format oci-archive -o "${oci_archive_path}" "${image_name}"
@@ -213,6 +220,7 @@ nimbus_binary_sha256="$(sha256_hex "${nimbus_binary}")"
 containerfile_sha256="$(sha256_hex "${script_dir}/Containerfile")"
 build_common_sha256="$(sha256_hex "${script_dir}/build-common.sh")"
 oci_archive_sha256="$(sha256_hex "${oci_archive_path}")"
+package_list_sha256="$(sha256_hex "${package_list_path}")"
 
 cat >"${output_dir}/summary.txt" <<EOF
 candidate=direct-fedora-bootc
@@ -245,6 +253,8 @@ containerfile_sha256=${containerfile_sha256}
 build_common_sha256=${build_common_sha256}
 oci_archive_path=${oci_archive_path}
 oci_archive_sha256=${oci_archive_sha256}
+package_list_path=${package_list_path}
+package_list_sha256=${package_list_sha256}
 raw_disk_path=${raw_disk_path}
 raw_disk_sha256=${raw_disk_sha256}
 compressed_raw_disk_path=${compressed_raw_disk_path}

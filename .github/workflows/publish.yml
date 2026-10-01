@@ -171,6 +171,7 @@ jobs:
           test -f "${BUILD_OUTPUT_DIR}/summary.txt"
           test -f "${BUILD_OUTPUT_DIR}/nimbus-machine-os.raw.gz"
           test -f "${BUILD_OUTPUT_DIR}/nimbus-machine-os.sbom.cdx.json"
+          test -s "${BUILD_OUTPUT_DIR}/nimbus-machine-os.packages.txt"
           test -f "${LAYOUT_DIR}/summary.txt"
           test -f "${LAYOUT_DIR}/index.json"
           test -d "${LAYOUT_DIR}/blobs/sha256"
@@ -196,6 +197,7 @@ jobs:
         run: |
           cp "${BUILD_OUTPUT_DIR}/nimbus-machine-os.raw.gz" "${RELEASE_DIR}/nimbus-machine-os.raw.gz"
           cp "${BUILD_OUTPUT_DIR}/nimbus-machine-os.sbom.cdx.json" "${RELEASE_DIR}/nimbus-machine-os.sbom.cdx.json"
+          cp "${BUILD_OUTPUT_DIR}/nimbus-machine-os.packages.txt" "${RELEASE_DIR}/nimbus-machine-os.packages.txt"
           cp "${BUILD_OUTPUT_DIR}/summary.txt" "${RELEASE_DIR}/build-summary.txt"
           cp "${LAYOUT_DIR}/summary.txt" "${RELEASE_DIR}/oci-layout-summary.txt"
           primary_digest="$(awk -F= '$1 == "image_digest" { print substr($0, length($1) + 2) }' "${RELEASE_DIR}/publish-summary.txt" | tail -n 1)"
@@ -234,6 +236,7 @@ jobs:
           Included assets:
           - \`nimbus-machine-os.raw.gz\`
           - \`nimbus-machine-os.sbom.cdx.json\`
+          - \`nimbus-machine-os.packages.txt\`
           - \`build-summary.txt\`
           - \`oci-layout-summary.txt\`
           - \`checksums.txt\`
@@ -253,6 +256,7 @@ jobs:
           assets=(
             "${RELEASE_DIR}/nimbus-machine-os.raw.gz"
             "${RELEASE_DIR}/nimbus-machine-os.sbom.cdx.json"
+            "${RELEASE_DIR}/nimbus-machine-os.packages.txt"
             "${RELEASE_DIR}/build-summary.txt"
             "${RELEASE_DIR}/oci-layout-summary.txt"
             "${RELEASE_DIR}/checksums.txt"
@@ -282,6 +286,7 @@ jobs:
           subject-path: |
             ${{ env.RELEASE_DIR }}/nimbus-machine-os.raw.gz
             ${{ env.RELEASE_DIR }}/nimbus-machine-os.sbom.cdx.json
+            ${{ env.RELEASE_DIR }}/nimbus-machine-os.packages.txt
             ${{ env.RELEASE_DIR }}/build-summary.txt
             ${{ env.RELEASE_DIR }}/oci-layout-summary.txt
             ${{ env.RELEASE_DIR }}/checksums.txt
