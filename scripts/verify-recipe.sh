@@ -26,12 +26,11 @@ grep -F 'nimbus ALL=(ALL) NOPASSWD: ALL' "${recipe_dir}/build-common.sh" >/dev/n
 grep -F 'chmod 0440 /etc/sudoers.d/nimbus' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/etc/systemd/system/local-fs.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/etc/systemd/system/multi-user.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F '/etc/systemd/system/sockets.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
+! grep -F 'sockets.target' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/bootloader-update.service.d' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/multi-user.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F '/usr/lib/systemd/system/sockets.target.wants' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/libexec/nimbus' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F '/usr/lib/systemd/system/nimbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
+! grep -F 'nimbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/nimbus.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/share/selinux/packages' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/var/lib/nimbus/control/node-agent' "${recipe_dir}/build-common.sh" >/dev/null
@@ -39,18 +38,24 @@ grep -F '/var/lib/nimbus/control/service-sandboxes' "${recipe_dir}/build-common.
 grep -F '/usr/lib/systemd/system/run-nimbus\x2dmachine\x2dconfig.mount' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/nimbus-machine-config.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/nimbus-boot-restorecon.service' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'WantedBy=sockets.target' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F '/usr/lib/systemd/system/sockets.target.wants/nimbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '/etc/systemd/system/multi-user.target.wants/nimbus.service' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '/usr/lib/systemd/system/multi-user.target.wants/nimbus.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/multi-user.target.wants/nimbus-machine-config.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F '/usr/lib/systemd/system/multi-user.target.wants/nimbus-boot-restorecon.service' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'ExecStartPost=/usr/bin/chcon -t container_var_run_t /run/nimbus/nimbus.sock' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'Requires=nimbus.socket nimbus-machine-config.service' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'After=nimbus.socket nimbus-machine-config.service network-online.target local-fs.target dbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
+! grep -F 'chcon' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'Requires=nimbus-machine-config.service' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'After=nimbus-machine-config.service network-online.target local-fs.target dbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Wants=network-online.target dbus.socket' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Before=nimbus.service sshd.service' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'WantedBy=multi-user.target' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'SELinuxContext=system_u:system_r:container_runtime_t:s0' "${recipe_dir}/build-common.sh" >/dev/null
-grep -F 'ExecStart=/usr/local/bin/nimbus machine api --socket-activation --control-data-dir /var/lib/nimbus/control --guest-node-id machine-os-guest-node' "${recipe_dir}/build-common.sh" >/dev/null
+# The ExecStart flags must stay inside the `nimbus machine api` interface:
+# --socket-path, --control-data-dir, --guest-node-id. There is no socket
+# activation mode; image/build.sh proves the baked binary accepts these flags.
+grep -F 'ExecStart=/usr/local/bin/nimbus machine api --socket-path /run/nimbus/nimbus.sock --control-data-dir /var/lib/nimbus/control --guest-node-id machine-os-guest-node' "${recipe_dir}/build-common.sh" >/dev/null
+! grep -F -- '--socket-activation' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F '(filecon "/run/nimbus(/.*)?" any (system_u object_r container_var_run_t ((s0) (s0))))' "${recipe_dir}/build-common.sh" >/dev/null
+grep -F 'allow sshd_session_t container_var_run_t (dir (search getattr))' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'What=nimbus-machine-config' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Where=/run/nimbus-machine-config' "${recipe_dir}/build-common.sh" >/dev/null
 grep -F 'Type=virtiofs' "${recipe_dir}/build-common.sh" >/dev/null
@@ -114,7 +119,8 @@ grep -F 'provisioning_contract=bootc-native-no-ignition-primary' "${recipe_dir}/
 grep -F 'admin_user=nimbus' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'rootless_subid=nimbus:100000:65536' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'package_inventory=aardvark-dns,buildah,conmon,containers-common,containers-common-extra,cpp,crun,fuse-overlayfs,gvisor-tap-vsock-gvforwarder,git-core,iproute,netavark,openssh-server,policycoreutils,podman,procps-ng,socat,sudo' "${recipe_dir}/build.sh" >/dev/null
-grep -F 'systemd_units=run-nimbus\x2dmachine\x2dconfig.mount,nimbus.socket,nimbus.service,nimbus-machine-config.service,nimbus-boot-restorecon.service,sshd.service' "${recipe_dir}/build.sh" >/dev/null
+grep -F 'systemd_units=run-nimbus\x2dmachine\x2dconfig.mount,nimbus.service,nimbus-machine-config.service,nimbus-boot-restorecon.service,sshd.service' "${recipe_dir}/build.sh" >/dev/null
+grep -F "nimbus_service_api_flags=\"\$(sed -n 's|^ExecStart=/usr/local/bin/nimbus machine api ||p' \"\${script_dir}/build-common.sh\")\"" "${recipe_dir}/build.sh" >/dev/null
 grep -F 'guest_node_agent_unit=nimbus.service' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'guest_node_agent_id=machine-os-guest-node' "${recipe_dir}/build.sh" >/dev/null
 grep -F 'guest_node_agent_status_path=/var/lib/nimbus/control/node-agent/status.jsonl' "${recipe_dir}/build.sh" >/dev/null
@@ -192,6 +198,7 @@ test -f "${output_dir}/nimbus-machine-os.packages.txt"
 printf '%s\n' aardvark-dns-1.17.1-1.fc44.aarch64 buildah-1.43.4-1.fc44.aarch64 podman-5.8.7-1.fc44.aarch64 |
   cmp -s - "${output_dir}/nimbus-machine-os.packages.txt"
 grep -F -- 'run --rm --entrypoint /usr/bin/rpm localhost/nimbus-machine-os:dev -qa' "${temp_dir}/podman.log" >/dev/null
+grep -F -- 'run --rm --entrypoint /usr/local/bin/nimbus localhost/nimbus-machine-os:dev machine api --socket-path /run/nimbus/nimbus.sock --control-data-dir /var/lib/nimbus/control --guest-node-id machine-os-guest-node --help' "${temp_dir}/podman.log" >/dev/null
 grep -F -- '--build-arg FEDORA_BOOTC_BASE_IMAGE=' "${temp_dir}/podman.log" >/dev/null
 grep -F -- '--no-cache' "${temp_dir}/podman.log" >/dev/null
 grep -F -- 'quay.io/fedora/fedora-bootc@sha256:9b270569fa5d66ed0b0fb6692b2a7431fb17c774df8fa7819722420194a6f8eb' "${temp_dir}/podman.log" >/dev/null
@@ -215,7 +222,7 @@ grep -F 'provisioning_contract=bootc-native-no-ignition-primary' "${output_dir}/
 grep -F 'admin_user=nimbus' "${output_dir}/summary.txt" >/dev/null
 grep -F 'rootless_subid=nimbus:100000:65536' "${output_dir}/summary.txt" >/dev/null
 grep -F 'package_inventory=aardvark-dns,buildah,conmon,containers-common,containers-common-extra,cpp,crun,fuse-overlayfs,gvisor-tap-vsock-gvforwarder,git-core,iproute,netavark,openssh-server,policycoreutils,podman,procps-ng,socat,sudo' "${output_dir}/summary.txt" >/dev/null
-grep -F 'systemd_units=run-nimbus\x2dmachine\x2dconfig.mount,nimbus.socket,nimbus.service,nimbus-machine-config.service,nimbus-boot-restorecon.service,sshd.service' "${output_dir}/summary.txt" >/dev/null
+grep -F 'systemd_units=run-nimbus\x2dmachine\x2dconfig.mount,nimbus.service,nimbus-machine-config.service,nimbus-boot-restorecon.service,sshd.service' "${output_dir}/summary.txt" >/dev/null
 grep -F 'guest_node_agent_unit=nimbus.service' "${output_dir}/summary.txt" >/dev/null
 grep -F 'guest_node_agent_id=machine-os-guest-node' "${output_dir}/summary.txt" >/dev/null
 grep -F 'guest_node_agent_status_path=/var/lib/nimbus/control/node-agent/status.jsonl' "${output_dir}/summary.txt" >/dev/null

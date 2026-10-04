@@ -9,10 +9,8 @@ mkdir -p \
   /etc/ssh/sshd_config.d \
   /etc/systemd/system/local-fs.target.wants \
   /etc/systemd/system/multi-user.target.wants \
-  /etc/systemd/system/sockets.target.wants \
   /usr/lib/systemd/system/bootloader-update.service.d \
   /usr/lib/systemd/system/multi-user.target.wants \
-  /usr/lib/systemd/system/sockets.target.wants \
   /etc/systemd/system/user@.service.d \
   /etc/sysctl.d \
   /usr/lib/systemd/system \
@@ -76,25 +74,14 @@ d /run/nimbus 0755 root root -
 d /run/nimbus-machine-config 0755 root root -
 EOF
 
-cat >/usr/lib/systemd/system/nimbus.socket <<'EOF'
-[Unit]
-Description=Nimbus API Socket
-
-[Socket]
-ListenStream=/run/nimbus/nimbus.sock
-SocketMode=0600
-DirectoryMode=0755
-ExecStartPost=/usr/bin/chcon -t container_var_run_t /run/nimbus/nimbus.sock
-
-[Install]
-WantedBy=sockets.target
-EOF
-
+# `nimbus machine api` binds /run/nimbus/nimbus.sock itself (mode 0600) and has
+# no socket-activation mode, so the image carries no nimbus.socket unit. The
+# socket label comes from the /run/nimbus file context in nimbus-machine-api.cil.
 cat >/usr/lib/systemd/system/nimbus.service <<'EOF'
 [Unit]
 Description=Nimbus API Service
-Requires=nimbus.socket nimbus-machine-config.service
-After=nimbus.socket nimbus-machine-config.service network-online.target local-fs.target dbus.socket
+Requires=nimbus-machine-config.service
+After=nimbus-machine-config.service network-online.target local-fs.target dbus.socket
 Wants=network-online.target dbus.socket
 
 [Service]
@@ -103,12 +90,12 @@ KillMode=process
 WorkingDirectory=/var/lib/nimbus/data
 Environment=HOME=/var/lib/nimbus/data
 SELinuxContext=system_u:system_r:container_runtime_t:s0
-ExecStart=/usr/local/bin/nimbus machine api --socket-activation --control-data-dir /var/lib/nimbus/control --guest-node-id machine-os-guest-node
+ExecStart=/usr/local/bin/nimbus machine api --socket-path /run/nimbus/nimbus.sock --control-data-dir /var/lib/nimbus/control --guest-node-id machine-os-guest-node
 Restart=on-failure
 RestartSec=2
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
 EOF
 
 cat >'/usr/lib/systemd/system/run-nimbus\x2dmachine\x2dconfig.mount' <<'EOF'
@@ -221,6 +208,8 @@ dnf remove -y moby-engine containerd runc toolbox docker-cli || true
 
 cat >/usr/share/selinux/packages/nimbus-machine-api.cil <<'EOF'
 (block nimbus_machine_api
+  (filecon "/run/nimbus(/.*)?" any (system_u object_r container_var_run_t ((s0) (s0))))
+  (allow sshd_session_t container_var_run_t (dir (search getattr)))
   (allow sshd_session_t container_var_run_t (sock_file (write getattr read open)))
   (allow sshd_session_t container_runtime_t (unix_stream_socket (connectto)))
 )
@@ -273,10 +262,10 @@ fi
 
 ln -fs /usr/lib/systemd/system/sshd.service \
   /etc/systemd/system/multi-user.target.wants/sshd.service
-ln -fs /usr/lib/systemd/system/nimbus.socket \
-  /etc/systemd/system/sockets.target.wants/nimbus.socket
-ln -fs /usr/lib/systemd/system/nimbus.socket \
-  /usr/lib/systemd/system/sockets.target.wants/nimbus.socket
+ln -fs /usr/lib/systemd/system/nimbus.service \
+  /etc/systemd/system/multi-user.target.wants/nimbus.service
+ln -fs /usr/lib/systemd/system/nimbus.service \
+  /usr/lib/systemd/system/multi-user.target.wants/nimbus.service
 ln -fs /usr/lib/systemd/system/nimbus-machine-config.service \
   /etc/systemd/system/multi-user.target.wants/nimbus-machine-config.service
 ln -fs /usr/lib/systemd/system/nimbus-machine-config.service \
@@ -297,7 +286,6 @@ chown -R nimbus:nimbus /var/lib/nimbus
 chmod 0755 /var/lib/nimbus /var/lib/nimbus/control /var/lib/nimbus/data
 restorecon -RFv \
   /usr/lib/systemd/system/nimbus.service \
-  /usr/lib/systemd/system/nimbus.socket \
   '/usr/lib/systemd/system/run-nimbus\x2dmachine\x2dconfig.mount' \
   /usr/lib/systemd/system/nimbus-machine-config.service \
   /var/lib/nimbus >/dev/null 2>&1 || true

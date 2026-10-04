@@ -25,8 +25,9 @@ The guest image contains:
 - **Container tooling** - podman, crun, conmon, buildah, containers-common,
   netavark, aardvark-dns, and fuse-overlayfs.
 - **System services** - openssh-server, socat, systemd user delegation, and
-  baked `nimbus.socket`, `nimbus.service`, and
-  `nimbus-machine-config.service` units.
+  baked `nimbus.service` and `nimbus-machine-config.service` units.
+  `nimbus.service` binds `/run/nimbus/nimbus.sock` directly; the image build
+  proves the baked binary accepts the unit's `nimbus machine api` flags.
 - **Guest node workload path** - service-sandbox lifecycle enters through the
   machine API, then uses the guest node-agent/systemd transient-unit driver
   with node id `machine-os-guest-node`.
