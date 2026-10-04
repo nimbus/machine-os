@@ -9,8 +9,11 @@ The image installs a narrow SELinux policy stance:
 
 - `nimbus.service` runs with
   `SELinuxContext=system_u:system_r:container_runtime_t:s0`
-- `nimbus.socket` listens on `/run/nimbus/nimbus.sock`
-- the socket is relabeled `container_var_run_t`
+- `nimbus.service` binds `/run/nimbus/nimbus.sock` itself (mode 0600); there
+  is no socket-activation unit
+- `nimbus-machine-api.cil` labels `/run/nimbus` and the socket
+  `container_var_run_t` through a file context, so the label does not depend
+  on a post-start relabel
 - `nimbus-machine-api.cil` allows the host-forwarded SSH session to connect to
   the machine API socket
 - `nimbus-guest-node-agent.cil` carries the narrow system D-Bus policy anchor

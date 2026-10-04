@@ -178,6 +178,22 @@ if ! grep -Eq '^podman-[0-9]' "${package_list_path}"; then
   exit 1
 fi
 
+# The baked nimbus binary must accept the flags that the baked nimbus.service
+# passes to `nimbus machine api`. A version match alone does not prove this:
+# v0.1.46 through v0.1.49 embedded a binary that rejected the unit's flags and
+# the guest API never started. clap exits 2 on an unknown flag and 0 on --help.
+nimbus_service_api_flags="$(sed -n 's|^ExecStart=/usr/local/bin/nimbus machine api ||p' "${script_dir}/build-common.sh")"
+if [[ -z "${nimbus_service_api_flags}" ]]; then
+  echo "build-common.sh does not define a nimbus.service ExecStart for 'nimbus machine api'" >&2
+  exit 1
+fi
+# shellcheck disable=SC2086
+if ! podman run --rm --entrypoint /usr/local/bin/nimbus "${image_name}" \
+  machine api ${nimbus_service_api_flags} --help >/dev/null; then
+  echo "baked nimbus binary rejects the nimbus.service flags: machine api ${nimbus_service_api_flags}" >&2
+  exit 1
+fi
+
 oci_archive_path="${output_dir}/nimbus-machine-os.ociarchive"
 
 podman save --format oci-archive -o "${oci_archive_path}" "${image_name}"
@@ -234,7 +250,7 @@ provisioning_mechanisms=sysusers.d,tmpfiles.d,baked-systemd-units,machine-config
 admin_user=nimbus
 rootless_subid=nimbus:100000:65536
 package_inventory=aardvark-dns,buildah,conmon,containers-common,containers-common-extra,cpp,crun,fuse-overlayfs,gvisor-tap-vsock-gvforwarder,git-core,iproute,netavark,openssh-server,policycoreutils,podman,procps-ng,socat,sudo
-systemd_units=run-nimbus\x2dmachine\x2dconfig.mount,nimbus.socket,nimbus.service,nimbus-machine-config.service,nimbus-boot-restorecon.service,sshd.service
+systemd_units=run-nimbus\x2dmachine\x2dconfig.mount,nimbus.service,nimbus-machine-config.service,nimbus-boot-restorecon.service,sshd.service
 guest_node_agent_unit=nimbus.service
 guest_node_agent_id=machine-os-guest-node
 guest_node_agent_status_path=/var/lib/nimbus/control/node-agent/status.jsonl
